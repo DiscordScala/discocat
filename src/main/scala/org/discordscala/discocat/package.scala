@@ -54,6 +54,7 @@ package object discocat {
             sent <- Stream.eval(sock.send(identify))
           } yield sent
           identify ++ beat
+        case _ => Stream.empty
     }
 
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
