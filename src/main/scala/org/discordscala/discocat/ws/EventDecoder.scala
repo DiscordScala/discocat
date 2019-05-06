@@ -5,6 +5,6 @@ import org.discordscala.discocat.Client
 
 trait EventDecoder {
 
-  def decode[F[_]](client: Client[F], struct: EventStruct): Either[DecodingFailure, Event[F]]
+  def decode[F[_]](client: Client[F]): PartialFunction[EventStruct, Either[DecodingFailure, Event[F]]]
 
 }
