@@ -1,24 +1,12 @@
 package org.discordscala
 
-import java.util.concurrent.TimeUnit
-
-import cats._
-import cats.implicits._
-import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2.{io => _, _}
-import io.circe.Decoder.Result
-import io.circe.{Decoder, DecodingFailure, HCursor}
-import io.circe.generic.auto._
 import io.circe.generic.extras._
-import io.circe.syntax._
-import org.discordscala.discocat.ws.event.{Heartbeat, HeartbeatAck, Hello, HelloData, Identify, IdentifyData, IdentifyProperties}
-import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct}
-import scodec.Encoder
-import spire.math.ULong
-
-import scala.concurrent.duration.FiniteDuration
+import io.circe.{Decoder, DecodingFailure, HCursor}
+import org.discordscala.discocat.ws.Event
 import scala.util.Try
+import spire.math.ULong
 
 package object discocat {
 

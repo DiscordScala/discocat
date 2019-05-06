@@ -1,8 +1,7 @@
 package org.discordscala.discocat.ws
 
-import io.circe.Decoder.Result
-import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.generic.auto._
+import io.circe.{Encoder, Json}
 import org.discordscala.discocat.Client
 
 trait Event[F[_]] {

@@ -3,15 +3,15 @@ package org.discordscala.discocat
 package ws
 
 import cats._
-import cats.implicits._
 import cats.effect._
-import cats.effect.concurrent.{Deferred, Ref}
-import fs2.{io => _, _}
+import cats.effect.concurrent.Ref
+import cats.implicits._
 import fs2.concurrent.{Queue, Topic}
-import io.circe.{Json, JsonObject}
+import fs2.{io => _, _}
+import io.circe.Json
 import io.circe.fs2._
-import io.circe.syntax._
 import io.circe.generic.auto._
+import io.circe.syntax._
 import spinoco.fs2.http.websocket.Frame
 import spire.math.ULong
 
@@ -24,7 +24,8 @@ case class Socket[F[_]](
   maxQueued: Int = 256,
 ) {
 
-  def handledEffects(implicit concurrent: Concurrent[F]): Stream[F, Unit] = Stream(handlers.map(_(sequence)(inbound.subscribe(maxQueued))): _*).parJoinUnbounded
+  def handledEffects(implicit concurrent: Concurrent[F]): Stream[F, Unit] =
+    Stream(handlers.map(_(sequence)(inbound.subscribe(maxQueued))): _*).parJoinUnbounded
 
   def send[A](e: Event.Aux[F, A])(implicit fmap: FlatMap[F]): F[Unit] = outbound.enqueue1(e)
 

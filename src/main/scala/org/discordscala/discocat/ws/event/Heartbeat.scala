@@ -2,8 +2,8 @@ package org.discordscala.discocat
 
 package ws.event
 
-import io.circe.{Encoder, Json}
 import io.circe.syntax._
+import io.circe.{Encoder, Json}
 import org.discordscala.discocat.ws.Event
 import spire.math.ULong
 

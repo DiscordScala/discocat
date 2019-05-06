@@ -2,8 +2,8 @@ package org.discordscala.discocat
 
 import cats.effect.Concurrent
 import cats.effect.concurrent.{Deferred, Ref}
-import fs2.{io => _, _}
 import fs2.concurrent.{Queue, Topic}
+import fs2.{io => _, _}
 import io.circe.DecodingFailure
 import org.discordscala.discocat.ws.event.HeartbeatAck
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}

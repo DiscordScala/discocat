@@ -1,8 +1,8 @@
 package org.discordscala.discocat
+
 package ws.event
 
 import io.circe.Encoder
-import org.discordscala.discocat.Client
 import org.discordscala.discocat.model.Message
 import org.discordscala.discocat.ws.Event
 

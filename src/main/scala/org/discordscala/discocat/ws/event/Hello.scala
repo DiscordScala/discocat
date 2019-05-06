@@ -3,9 +3,8 @@ package org.discordscala.discocat
 package ws.event
 
 import io.circe.Encoder
-import io.circe.generic.auto._
 import io.circe.generic.extras.ConfiguredJsonCodec
-import org.discordscala.discocat.Client
+import io.circe.generic.auto._
 import org.discordscala.discocat.ws.Event
 import spire.math.ULong
 

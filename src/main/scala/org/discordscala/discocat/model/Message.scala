@@ -1,4 +1,5 @@
 package org.discordscala.discocat
+
 package model
 
 import io.circe.Json

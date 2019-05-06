@@ -1,4 +1,5 @@
 package org.discordscala.discocat
+
 package ws.event
 
 import io.circe.Encoder
@@ -18,4 +19,8 @@ case class Identify[F[_]](client: Client[F], d: IdentifyData) extends Event[F] {
 
 @ConfiguredJsonCodec case class IdentifyData(token: String, properties: IdentifyProperties = IdentifyProperties())
 
-case class IdentifyProperties(@JsonKey("$os") os: String = "linux", @JsonKey("$browser") browser: String = "discocat", @JsonKey("$device") device: String = "discocat")
+case class IdentifyProperties(
+  @JsonKey("$os") os: String = "linux",
+  @JsonKey("$browser") browser: String = "discocat",
+  @JsonKey("$device") device: String = "discocat"
+)
