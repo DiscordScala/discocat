@@ -32,7 +32,6 @@ object Defaults {
             sock <- Stream.eval(cli.deferredSocket.get)
             seq <- Stream.eval(sock.sequence.get)
             heartbeat = Heartbeat(cli, seq)
-            _ <- Stream.eval(Sync[F].delay(println(s"Heartbeating at $time")))
             sent <- Stream.eval(sock.send(heartbeat))
           } yield sent
           val identify: Stream[F, Unit] = for {
