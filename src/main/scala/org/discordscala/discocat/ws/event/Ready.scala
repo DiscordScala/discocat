@@ -5,6 +5,7 @@ package ws.event
 import io.circe.{Encoder, Json}
 import io.circe.generic.auto._
 import io.circe.generic.extras.ConfiguredJsonCodec
+import org.discordscala.discocat.model.User
 import org.discordscala.discocat.ws.Event
 
 case class Ready[F[_]](client: Client[F], d: ReadyData) extends Event[F] {
@@ -18,7 +19,7 @@ case class Ready[F[_]](client: Client[F], d: ReadyData) extends Event[F] {
 
 @ConfiguredJsonCodec case class ReadyData(
   v: Int,
-  user: Json, // TODO
+  user: User,
   guilds: List[Json], // TODO
   sessionId: String
 )
