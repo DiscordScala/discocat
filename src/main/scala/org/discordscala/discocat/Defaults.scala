@@ -1,17 +1,21 @@
 package org.discordscala.discocat
 
-import cats.effect.concurrent.Deferred
-import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Timer}
+import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Sync, Timer}
 import fs2.Stream
 import io.circe.DecodingFailure
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.TimeUnit
+
+import fs2.concurrent.{Queue, Topic}
 import org.discordscala.discocat.model.Message
 import org.discordscala.discocat.ws.event._
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
+
 import scala.concurrent.duration.FiniteDuration
 import spinoco.fs2.http
 import spinoco.fs2.http.HttpClient
+import spire.math.ULong
 
 object Defaults {
 
@@ -19,6 +23,12 @@ object Defaults {
     http.client[F]()
 
   def socketDeferred[F[_]: Concurrent]: F[Deferred[F, Socket[F]]] = Deferred[F, Socket[F]]
+
+  def eventTopic[F[_]: Concurrent](c: Client[F]): F[Topic[F, Event[F]]] = Topic(HeartbeatAck(c))
+
+  def eventQueue[F[_]: Concurrent]: F[Queue[F, Event[F]]] = Queue.unbounded[F, Event[F]]
+
+  def sequenceRef[F[_]: Sync]: F[Ref[F, Option[ULong]]] = Ref.of[F, Option[ULong]](None)
 
   def defaultEventHandler[F[_]: Timer: Concurrent]: EventHandler[F] =
     sequenceRef =>

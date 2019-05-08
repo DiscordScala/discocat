@@ -1,11 +1,13 @@
 package org.discordscala.discocat
 
+import cats._
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
 import fs2._
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.Executors
+import org.discordscala.discocat.instances._
 import org.discordscala.discocat.model.Message
 import org.discordscala.discocat.ws.event.MessageCreate
 import org.discordscala.discocat.ws.{Event, Socket}
@@ -22,17 +24,15 @@ object Test extends IOApp {
 
   def program[F[_]: ConcurrentEffect: ContextShift: Timer](implicit ag: AsynchronousChannelGroup): F[Unit] = {
     for {
-      h <- http.client[F]()
-      d <- Deferred[F, Socket[F]]
       t <- Sync[F].delay(StdIn.readLine("Token? "))
-      c = Client[F](t, h, d)
+      c <- Client[F](t)
       l <- c.login(
         (
           (_: Ref[F, Option[ULong]]) =>
             (in: Stream[F, Event[F]]) =>
               in.collect {
-                case MessageCreate(_, Message(_, _, _, _, _, content)) => content
-              }.evalMap(content => Sync[F].delay(println(content)))
+                case MessageCreate(_, m @ Message.Ct(_)) => m
+              }.evalMap(m => Sync[F].delay(println(show"Message by ${m.author} at ${m.timestamp} with mentions: ${m.mentions}")))
         )
           :: Defaults.defaultEventHandler[F]
           :: Nil
