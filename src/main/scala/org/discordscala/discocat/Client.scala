@@ -8,11 +8,13 @@ import fs2.concurrent.{Queue, Topic}
 import fs2.{io => _, _}
 import io.circe.DecodingFailure
 import java.nio.channels.AsynchronousChannelGroup
+
+import org.discordscala.discocat.util.RequestUtil
 import org.discordscala.discocat.ws.event.HeartbeatAck
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
 import spinoco.fs2.http.HttpClient
 import spinoco.fs2.http.websocket.WebSocketRequest
-import spinoco.protocol.http.Uri
+import spinoco.protocol.http.{HttpResponseHeader, Uri}
 import spire.math.ULong
 
 case class Client[F[_]](
@@ -24,10 +26,12 @@ case class Client[F[_]](
   gatewayRoot: Uri = Uri.wss("gateway.discord.gg", "/?v=6&encoding=json"),
 ) {
 
+  val request = RequestUtil(this)
+
   def decode(e: EventStruct): Option[Either[DecodingFailure, Event[F]]] = decoder.decode(this).lift(e)
 
-  def login(handlers: EventHandlers[F], topic: Topic[F, Event[F]], queue: Queue[F, Event[F]], ref: Ref[F, Option[ULong]])(implicit concurrent: Concurrent[F]): F[Unit] =
-    (for {
+  def login(handlers: EventHandlers[F], topic: Topic[F, Event[F]], queue: Queue[F, Event[F]], ref: Ref[F, Option[ULong]])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
+    for {
       client <- Stream(httpClient)
       req = WebSocketRequest.wss(
         gatewayRoot.host.host,
@@ -38,12 +42,12 @@ case class Client[F[_]](
       sock = Socket(this, handlers, topic, queue, ref)
       _ <- Stream.eval(deferredSocket.complete(sock))
       o <- client.websocket(req, sock.pipe)(scodec.codecs.utf8, scodec.codecs.utf8)
-    } yield o).compile.drain
+    } yield o
 
-  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): F[Unit] = for {
-      inbound <- Defaults.eventTopic[F](this)
-      outbound <- Defaults.eventQueue[F]
-      ref <- Defaults.sequenceRef[F]
+  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] = for {
+      inbound <- Stream.eval(Defaults.eventTopic[F](this))
+      outbound <- Stream.eval(Defaults.eventQueue[F])
+      ref <- Stream.eval(Defaults.sequenceRef[F])
       l <- login(handlers, inbound, outbound, ref)
     } yield l
 

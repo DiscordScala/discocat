@@ -33,7 +33,13 @@ object Test extends IOApp {
           case MessageCreate(_, m) =>
             Stream.eval(
               Sync[F].delay(println(show"Message by ${m.author} at ${m.timestamp} with mentions: ${m.mentions}"))
-            )
+            ).flatTap { _ =>
+              if(m.content == "!ping") {
+                c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!"))
+              } else {
+                Stream.empty
+              }
+            }
           case Ready(_, ReadyData(_, user, _, _)) =>
             Stream.eval(
               Sync[F].delay(println(show"Ready! Logged in as $user."))
@@ -41,7 +47,7 @@ object Test extends IOApp {
         }
           :: Defaults.defaultEventHandler[F]
           :: Nil
-      )
+      ).compile.drain
     } yield l
   }
 
