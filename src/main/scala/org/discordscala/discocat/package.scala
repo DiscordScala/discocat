@@ -17,6 +17,12 @@ package object discocat {
   type EventHandler[F[_]] = Ref[F, Option[ULong]] => Pipe[F, Event[F], Unit]
   type EventHandlers[F[_]] = List[EventHandler[F]]
 
+  object EventHandler {
+
+    def apply[F[_]](f: PartialFunction[Event[F], Stream[F, Unit]]): EventHandler[F] = _ => _.collect(f).flatten
+
+  }
+
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
 
   implicit val ulongDecoder: Decoder[ULong] = (c: HCursor) => {

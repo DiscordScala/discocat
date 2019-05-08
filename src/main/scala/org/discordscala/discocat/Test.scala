@@ -27,13 +27,12 @@ object Test extends IOApp {
       t <- Sync[F].delay(StdIn.readLine("Token? "))
       c <- Client[F](t)
       l <- c.login(
-        (
-          (_: Ref[F, Option[ULong]]) =>
-            (in: Stream[F, Event[F]]) =>
-              in.collect {
-                case MessageCreate(_, m @ Message.Ct(_)) => m
-              }.evalMap(m => Sync[F].delay(println(show"Message by ${m.author} at ${m.timestamp} with mentions: ${m.mentions}")))
-        )
+        EventHandler {
+          case MessageCreate(_, m) =>
+            Stream.eval(
+              Sync[F].delay(println(show"Message by ${m.author} at ${m.timestamp} with mentions: ${m.mentions}"))
+            )
+        }
           :: Defaults.defaultEventHandler[F]
           :: Nil
       )
