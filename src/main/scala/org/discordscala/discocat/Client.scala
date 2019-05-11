@@ -30,7 +30,12 @@ case class Client[F[_]](
 
   def decode(e: EventStruct): Option[Either[DecodingFailure, Event[F]]] = decoder.decode(this).lift(e)
 
-  def login(handlers: EventHandlers[F], topic: Topic[F, Event[F]], queue: Queue[F, Event[F]], ref: Ref[F, Option[ULong]])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
+  def login(
+    handlers: EventHandlers[F],
+    topic: Topic[F, Event[F]],
+    queue: Queue[F, Event[F]],
+    ref: Ref[F, Option[ULong]]
+  )(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
     for {
       client <- Stream(httpClient)
       req = WebSocketRequest.wss(
@@ -44,7 +49,8 @@ case class Client[F[_]](
       o <- client.websocket(req, sock.pipe)(scodec.codecs.utf8, scodec.codecs.utf8)
     } yield o
 
-  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] = for {
+  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
+    for {
       inbound <- Stream.eval(Defaults.eventTopic[F](this))
       outbound <- Stream.eval(Defaults.eventQueue[F])
       ref <- Stream.eval(Defaults.sequenceRef[F])
@@ -55,7 +61,10 @@ case class Client[F[_]](
 
 object Client {
 
-  def apply[F[_]: ConcurrentEffect: ContextShift: Timer](token: String)(implicit ag: AsynchronousChannelGroup): F[Client[F]] = for {
+  def apply[F[_]: ConcurrentEffect: ContextShift: Timer](
+    token: String
+  )(implicit ag: AsynchronousChannelGroup): F[Client[F]] =
+    for {
       h <- Defaults.httpClient[F]
       d <- Defaults.socketDeferred
       c = Client(token, h, d)

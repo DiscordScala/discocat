@@ -16,7 +16,8 @@ object instances {
 
   implicit val userShow: Show[User] = (t: User) => s"${t.username}#${t.discriminator} (${t.id})"
 
-  implicit val timestampShow: Show[ZonedDateTime] = (t: ZonedDateTime) => t.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
+  implicit val timestampShow: Show[ZonedDateTime] = (t: ZonedDateTime) =>
+    t.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
 
   implicit val memberUserShow: Show[MemberUser] = (t: MemberUser) =>
     t.member.nick.fold("")(a => "\"" ++ a ++ "\" ") ++ show"${t.user}"

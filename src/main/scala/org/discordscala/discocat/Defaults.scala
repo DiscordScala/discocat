@@ -9,18 +9,28 @@ import java.util.concurrent.TimeUnit
 
 import fs2.concurrent.{Queue, Topic}
 import org.discordscala.discocat.model.Message
+import org.discordscala.discocat.util.RequestUtil
 import org.discordscala.discocat.ws.event._
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
 
 import scala.concurrent.duration.FiniteDuration
+import scodec.Codec
 import spinoco.fs2.http
 import spinoco.fs2.http.HttpClient
+import spinoco.protocol.http.codec.{HttpHeaderCodec, HttpRequestHeaderCodec, HttpResponseHeaderCodec}
+import spinoco.protocol.http.header.HttpHeader
 import spire.math.ULong
 
 object Defaults {
 
+  val headerCodec: Codec[HttpHeader] =
+    HttpHeaderCodec.codec(Int.MaxValue, ("Authorization" -> RequestUtil.customAuthorizationHeader))
+
   def httpClient[F[_]: ConcurrentEffect: ContextShift: Timer](implicit ag: AsynchronousChannelGroup): F[HttpClient[F]] =
-    http.client[F]()
+    http.client[F](
+      requestCodec = HttpRequestHeaderCodec.codec(headerCodec),
+      responseCodec = HttpResponseHeaderCodec.codec(headerCodec)
+    )
 
   def socketDeferred[F[_]: Concurrent]: F[Deferred[F, Socket[F]]] = Deferred[F, Socket[F]]
 

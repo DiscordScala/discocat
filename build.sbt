@@ -2,11 +2,12 @@ val catsCoreVersion = "2.0.0-M1"
 val catsEffectVersion = "2.0.0-M1"
 val fs2CoreVersion = "1.0.4"
 val fs2HttpVersion = "0.4.1"
+val protocolHttpVersion = "0.3.17"
 val circeVersion = "0.12.0-M1"
 val circeFs2Version = "0.11.0"
 val spireVersion = "0.16.1"
 
-lazy val discocat = (project in file(".")).settings (
+lazy val discocat = (project in file(".")).settings(
   organization := "org.discordscala",
   name := "discocat",
   version := "0.1.0",
@@ -16,6 +17,7 @@ lazy val discocat = (project in file(".")).settings (
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2" %% "fs2-core" % fs2CoreVersion,
     "com.spinoco" %% "fs2-http" % fs2HttpVersion,
+    "com.spinoco" %% "protocol-http" % protocolHttpVersion,
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-generic-extras" % circeVersion,
