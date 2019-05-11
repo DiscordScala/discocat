@@ -25,30 +25,23 @@ All examples are written in terms of `IOApp` and `program[F[_]]`.
 A simple `!ping` -> `Pong` bot:
 
 ```scala
-  override def run(args: List[String]): IO[ExitCode] = {
-    implicit val ag: AsynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Executors.newCachedThreadPool())
-    program[IO].as(ExitCode.Success)
-  }
-
-  def program[F[_]: ConcurrentEffect: ContextShift: Timer](implicit ag: AsynchronousChannelGroup): F[Unit] = {
-    for {
-      t <- Sync[F].delay(StdIn.readLine("Token? "))
-      c <- Client[F](t)
-      l <- c
-        .login(
-          EventHandler[F] {
-            case MessageCreate(_, m) =>
-			  if (m.content == "!ping") {
-                c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!")).drain
-              } else {
-                Stream.empty
-              }
+for {
+  t <- Sync[F].delay(StdIn.readLine("Token? "))
+  c <- Client[F](t)
+  l <- c
+    .login(
+      EventHandler[F] {
+        case MessageCreate(_, m) =>
+          if (m.content == "!ping") {
+            c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!")).drain
+          } else {
+            Stream.empty
           }
-            :: Defaults.defaultEventHandler[F]
-            :: Nil
-        )
-        .compile
-        .drain
-    } yield l
-  }
+      }
+        :: Defaults.defaultEventHandler[F]
+        :: Nil
+    )
+    .compile
+    .drain
+} yield l
 ```
