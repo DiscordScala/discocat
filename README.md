@@ -18,7 +18,11 @@ It means:
   
 ## Examples:
 
-All examples are written in terms of `IOApp` and `program[F[_]]`.
+All examples are written in terms of `IOApp` and `program[F[_]]`. These implicits are needed:
+- `AsynchronousChannelGroup`
+- `ConcurrentEffect[F]`
+- `ContextShift[F]`
+- `Timer[F]`
 
 ### Ping!
 
