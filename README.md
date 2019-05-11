@@ -38,21 +38,11 @@ A simple `!ping` -> `Pong` bot:
         .login(
           EventHandler[F] {
             case MessageCreate(_, m) =>
-              Stream
-                .eval(
-                  Sync[F].delay(println(show"Message by ${m.author} at ${m.timestamp} with mentions: ${m.mentions}"))
-                )
-                .flatTap { _ =>
-                  if (m.content == "!ping") {
-                    c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!"))
-                  } else {
-                    Stream.empty
-                  }
-                }
-            case Ready(_, ReadyData(_, user, _, _)) =>
-              Stream.eval(
-                Sync[F].delay(println(show"Ready! Logged in as $user."))
-              )
+			  if (m.content == "!ping") {
+                c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!")).drain
+              } else {
+                Stream.empty
+              }
           }
             :: Defaults.defaultEventHandler[F]
             :: Nil
