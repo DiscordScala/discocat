@@ -38,7 +38,9 @@ object Test extends IOApp {
                 )
                 .flatTap { _ =>
                   if (m.content == "!ping") {
-                    c.request.post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!"))
+                    c.request
+                      .post(s"channels/${m.channelId}/messages", Nil, Map("content" -> "Pong!"))
+                      .evalTap(r => Sync[F].delay(println(r.header.status.code)))
                   } else {
                     Stream.empty
                   }

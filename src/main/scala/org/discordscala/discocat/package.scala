@@ -12,7 +12,7 @@ import org.discordscala.discocat.ws.Event
 import scala.util.Try
 import spire.math.ULong
 
-package object discocat {
+package object discocat extends model.Implicits {
 
   type EventHandler[F[_]] = Ref[F, Option[ULong]] => Pipe[F, Event[F], Unit]
   type EventHandlers[F[_]] = List[EventHandler[F]]

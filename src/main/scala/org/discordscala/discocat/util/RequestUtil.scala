@@ -22,7 +22,20 @@ case class RequestUtil[F[_]](c: Client[F]) {
     bodyEncoder: BodyEncoder[A]
   ): Stream[F, HttpResponse[F]] = {
     val thisReqPath = c.apiRoot.copy(path = c.apiRoot.path / path)
-    val req = HttpRequest.post(thisReqPath, content)
+    val req = HttpRequest.post[F, A](thisReqPath, content)
+    val hreq = headers match {
+      case h :: t => req.appendHeader(h, t: _*)
+      case Nil => req
+    }
+    val treq = hreq.appendHeader(tokenHeader)
+    c.httpClient.request(treq)
+  }
+
+  def get(path: String, headers: List[HttpHeader])(
+    implicit raiseThrowable: ApplicativeError[F, Throwable]
+  ): Stream[F, HttpResponse[F]] = {
+    val thisReqPath = c.apiRoot.copy(path = c.apiRoot.path / path)
+    val req = HttpRequest.get[F](thisReqPath)
     val hreq = headers match {
       case h :: t => req.appendHeader(h, t: _*)
       case Nil => req
