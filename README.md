@@ -8,23 +8,23 @@
 
 Discocat is a Scala library that provides access to Discord's API built around [cats](https://typelevel.org/cats/) and [fs2](https://fs2.io/). It is under the LGPL v3.
 
-## What does this license mean for me?
+## What this license means for you
 
 It means:
-- When making changes to this library, they have to be made completely public.
-- When making a bot, either:
-  - The bot's source must be made completely public.
-  - The bot must be able to display its usage of this library.
+  - When making changes to this library, they have to be made completely public.
+  - When making a bot, either:
+    - The bot's source must be made completely public.
+    - The bot must be able to display its usage of this library.
   
-## Examples:
+## Examples
 
 All examples are written in terms of `IOApp` and `program[F[_]]`. These implicits are needed:
-- `AsynchronousChannelGroup`
-- `ConcurrentEffect[F]`
-- `ContextShift[F]`
-- `Timer[F]`
+  - `AsynchronousChannelGroup`
+  - `ConcurrentEffect[F]`
+  - `ContextShift[F]`
+  - `Timer[F]`
 
-### Ping!
+### Ping
 
 A simple `!ping` -> `Pong` bot:
 

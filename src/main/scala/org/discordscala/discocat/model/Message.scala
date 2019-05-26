@@ -11,7 +11,47 @@ import io.circe.generic.extras.{ConfiguredJsonCodec, JsonKey}
 import java.time.ZonedDateTime
 import spire.math.ULong
 
-@ConfiguredJsonCodec case class Message(
+sealed trait Message {
+
+  val id: ULong
+  val channelId: ULong
+  val author: User
+  val content: String
+  val timestamp: ZonedDateTime
+  val editedTimestamp: Option[ZonedDateTime]
+  val tts: Boolean
+  val mentionEveryone: Boolean
+  val mentions: List[User]
+  val mentionRoles: List[ULong]
+  val attachments: List[Json] // TODO
+  val embeds: List[Json] // TODO
+  val pinned: Boolean
+
+}
+
+sealed trait GuildMessage extends Message {
+
+  val guildId: ULong
+  val member: PartialMember
+  override val mentions: List[MemberUser]
+
+}
+
+@ConfiguredJsonCodec case class WebhookMessage(
+  id: ULong,
+  channelId: ULong,
+  guildId: ULong,
+  author: User,
+  member: PartialMember,
+  content: String,
+  timestamp: ZonedDateTime,
+  editedTimestamp: Option[ZonedDateTime],
+  tts: Boolean,
+  mentionEveryone: Boolean,
+  mentions: List[MemberUser]
+) extends GuildMessage
+
+@ConfiguredJsonCodec case class MessageO(
   id: ULong,
   channelId: ULong,
   guildId: Option[ULong],
