@@ -1,38 +1,29 @@
-val catsCoreVersion = "2.0.0-M1"
-val catsEffectVersion = "2.0.0-M1"
-val fs2CoreVersion = "1.0.4"
-val fs2HttpVersion = "0.4.1"
-val protocolHttpVersion = "0.3.17"
-val circeVersion = "0.12.0-M1"
-val circeFs2Version = "0.11.0"
-val spireVersion = "0.16.1"
+val libs = org.typelevel.libraries
+  .add(name = "cats", version = "2.1.1")
+  .add(name = "cats-effect", version = "2.1.2")
+  .add(name = "fs2", version = "2.3.0")
+  .add(name = "http4s", version = "0.21.2")
+  .add(name = "circe", version = "0.13.0", org = "io.circe", "circe-core", "circe-generic", "circe-generic-extras", "circe-parser", "circe-fs2")
+  .add(name = "spire", version = "0.17.0-M1", org = "org.typelevel", "spire")
+  .add(name = "http4s-jdk-http-client", version = "0.2.0", org = "org.http4s", "http4s-jdk-http-client")
 
-lazy val discocat = (project in file(".")).settings(
+lazy val discocat = (project in file("discocat")).settings(
   organization := "org.discordscala",
   name := "discocat",
   version := "0.1.0",
-  scalaVersion := "2.12.8",
-  libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % catsCoreVersion,
-    "org.typelevel" %% "cats-effect" % catsEffectVersion,
-    "co.fs2" %% "fs2-core" % fs2CoreVersion,
-    "com.spinoco" %% "fs2-http" % fs2HttpVersion,
-    "com.spinoco" %% "protocol-http" % protocolHttpVersion,
-    "io.circe" %% "circe-core" % circeVersion,
-    "io.circe" %% "circe-generic" % circeVersion,
-    "io.circe" %% "circe-generic-extras" % circeVersion,
-    "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-fs2" % circeFs2Version,
-    "org.typelevel" %% "spire" % spireVersion,
+  scalaVersion := "2.13.1",
+  libs.dependencies(
+    "cats-core",
+    "cats-effect",
+    "fs2-core",
+    "circe-core",
+    "circe-generic",
+    "circe-generic-extras",
+    "circe-parser",
+    "circe-fs2",
+    "http4s-jdk-http-client",
+    "spire",
   ),
-  scalacOptions ++= Seq(
-    "-unchecked",
-    "-deprecation",
-    "-feature",
-    "-Ypartial-unification",
-    "-language:higherKinds",
-  ),
-  addCompilerPlugin(
-    "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
-  ),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+  addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 )

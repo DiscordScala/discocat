@@ -1,32 +1,30 @@
 package org.discordscala.discocat
 
-import cats._
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
-import fs2.concurrent.{Queue, Topic}
 import fs2.{io => _, _}
+import fs2.concurrent.{Queue, Topic}
 import io.circe.DecodingFailure
-import java.nio.channels.AsynchronousChannelGroup
-
 import org.discordscala.discocat.util.RequestUtil
-import org.discordscala.discocat.ws.event.HeartbeatAck
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
-import spinoco.fs2.http.HttpClient
-import spinoco.fs2.http.websocket.WebSocketRequest
-import spinoco.protocol.http.{HttpResponseHeader, Uri}
+import org.http4s._
+import org.http4s.client.{Client => HttpClient}
+import org.http4s.client.jdkhttpclient._
+import org.http4s.implicits._
 import spire.math.ULong
 
 case class Client[F[_]](
   token: String,
   httpClient: HttpClient[F],
+  wsClient: WSClient[F],
   deferredSocket: Deferred[F, Socket[F]],
   decoder: EventDecoder = Defaults.defaultEventDecoder,
-  apiRoot: Uri = Uri.https("discordapp.com", "/api/v6/"),
-  gatewayRoot: Uri = Uri.wss("gateway.discord.gg", "/?v=6&encoding=json"),
+  apiRoot: Uri = uri"https://discordapp.com/api/v6/",
+  gatewayRoot: Uri = uri"wss://gateway.discord.gg/?v=6&encoding=json",
 ) {
 
-  val request = RequestUtil(this)
+  val request: RequestUtil[F] = RequestUtil(this)
 
   def decode(e: EventStruct): Option[Either[DecodingFailure, Event[F]]] = decoder.decode(this).lift(e)
 
@@ -35,21 +33,20 @@ case class Client[F[_]](
     topic: Topic[F, Event[F]],
     queue: Queue[F, Event[F]],
     ref: Ref[F, Option[ULong]]
-  )(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
+  )(implicit concurrent: Concurrent[F]): Stream[F, Unit] =
     for {
-      client <- Stream(httpClient)
-      req = WebSocketRequest.wss(
-        gatewayRoot.host.host,
-        gatewayRoot.host.port.getOrElse(443),
-        gatewayRoot.path.stringify,
-        gatewayRoot.query.params: _*
-      )
+      conn <- Stream.resource(wsClient.connectHighLevel(WSRequest(gatewayRoot)))
       sock = Socket(this, handlers, topic, queue, ref)
       _ <- Stream.eval(deferredSocket.complete(sock))
-      o <- client.websocket(req, sock.pipe)(scodec.codecs.utf8, scodec.codecs.utf8)
-    } yield o
+      handle <- conn.receiveStream
+        .collect {
+          case WSFrame.Text(data, _) => data
+        }
+        .through(sock.pipe)
+        .through(conn.sendPipe)
+    } yield handle
 
-  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): Stream[F, Option[HttpResponseHeader]] =
+  def login(handlers: EventHandlers[F])(implicit concurrent: Concurrent[F]): Stream[F, Unit] =
     for {
       inbound <- Stream.eval(Defaults.eventTopic[F](this))
       outbound <- Stream.eval(Defaults.eventQueue[F])
@@ -63,11 +60,11 @@ object Client {
 
   def apply[F[_]: ConcurrentEffect: ContextShift: Timer](
     token: String
-  )(implicit ag: AsynchronousChannelGroup): F[Client[F]] =
+  ): F[Client[F]] =
     for {
-      h <- Defaults.httpClient[F]
+      (h, ws) <- Defaults.httpClient[F]
       d <- Defaults.socketDeferred
-      c = Client(token, h, d)
+      c = Client(token, h, ws, d)
     } yield c
 
 }

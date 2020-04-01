@@ -3,16 +3,14 @@ package org.discordscala
 import cats.effect.concurrent.Ref
 import fs2.{io => _, _}
 import io.circe.generic.extras._
-import io.circe.{CursorOp, Decoder, DecodingFailure, HCursor, Json}
-import java.time.{Instant, ZoneId, ZonedDateTime}
-
-import org.discordscala.discocat.model.{Member, MemberUser, PartialMember, User}
+import io.circe.{Decoder, DecodingFailure, HCursor}
+import java.time.ZonedDateTime
 import org.discordscala.discocat.ws.Event
-
-import scala.util.Try
 import spire.math.ULong
 
-package object discocat extends model.Implicits {
+import scala.util.Try
+
+package object discocat {
 
   type EventHandler[F[_]] = Ref[F, Option[ULong]] => Pipe[F, Event[F], Unit]
   type EventHandlers[F[_]] = List[EventHandler[F]]
@@ -23,7 +21,7 @@ package object discocat extends model.Implicits {
 
   }
 
-  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
+  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
 
   implicit val ulongDecoder: Decoder[ULong] = (c: HCursor) => {
     val numO = c.value.asNumber
@@ -45,21 +43,5 @@ package object discocat extends model.Implicits {
 
   implicit def listDecoder[A: Decoder]: Decoder[List[A]] =
     Decoder.decodeOption(Decoder.decodeList[A]).map(_.getOrElse(List.empty))
-
-  implicit val memberUserDecoder: Decoder[MemberUser] = (c: HCursor) => {
-    val user = c.as[User]
-    user.flatMap { user =>
-      val memberJ = c
-        .downField("member")
-        .success
-        .toRight(
-          DecodingFailure(
-            s"Attempt to decode member from non-MemberUser: ${c.value}",
-            List(CursorOp.DownField("member"))
-          )
-        )
-      memberJ.flatMap(_.as[PartialMember].map(member => MemberUser(user, member)))
-    }
-  }
 
 }

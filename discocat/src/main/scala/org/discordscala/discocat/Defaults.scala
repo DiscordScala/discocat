@@ -2,35 +2,24 @@ package org.discordscala.discocat
 
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Sync, Timer}
+import cats.implicits._
 import fs2.Stream
-import io.circe.DecodingFailure
-import java.nio.channels.AsynchronousChannelGroup
-import java.util.concurrent.TimeUnit
-
 import fs2.concurrent.{Queue, Topic}
-import org.discordscala.discocat.model.Message
-import org.discordscala.discocat.util.RequestUtil
+import io.circe.{DecodingFailure, Json}
+import java.util.concurrent.TimeUnit
 import org.discordscala.discocat.ws.event._
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
-
+import org.http4s.client.jdkhttpclient._
+import org.http4s.client.{Client => HttpClient}
 import scala.concurrent.duration.FiniteDuration
-import scodec.Codec
-import spinoco.fs2.http
-import spinoco.fs2.http.HttpClient
-import spinoco.protocol.http.codec.{HttpHeaderCodec, HttpRequestHeaderCodec, HttpResponseHeaderCodec}
-import spinoco.protocol.http.header.HttpHeader
 import spire.math.ULong
 
 object Defaults {
 
-  val headerCodec: Codec[HttpHeader] =
-    HttpHeaderCodec.codec(Int.MaxValue, ("Authorization" -> RequestUtil.customAuthorizationHeader))
-
-  def httpClient[F[_]: ConcurrentEffect: ContextShift: Timer](implicit ag: AsynchronousChannelGroup): F[HttpClient[F]] =
-    http.client[F](
-      requestCodec = HttpRequestHeaderCodec.codec(headerCodec),
-      responseCodec = HttpResponseHeaderCodec.codec(headerCodec)
-    )
+  def httpClient[F[_]: ConcurrentEffect: ContextShift: Timer]: F[(HttpClient[F], WSClient[F])] =
+    Sync[F].delay(java.net.http.HttpClient.newHttpClient()).map { jdkHttpClient =>
+      (JdkHttpClient(jdkHttpClient), JdkWSClient(jdkHttpClient))
+    }
 
   def socketDeferred[F[_]: Concurrent]: F[Deferred[F, Socket[F]]] = Deferred[F, Socket[F]]
 
@@ -41,12 +30,12 @@ object Defaults {
   def sequenceRef[F[_]: Sync]: F[Ref[F, Option[ULong]]] = Ref.of[F, Option[ULong]](None)
 
   def defaultEventHandler[F[_]: Timer: Concurrent]: EventHandler[F] =
-    sequenceRef =>
+    _ =>
       _.flatMap {
         case Hello(cli, HelloData(interval)) =>
           val beat: Stream[F, Unit] = for {
-            time <- Stream[F, FiniteDuration](FiniteDuration.apply(0, TimeUnit.MILLISECONDS)) ++ Stream.awakeEvery[F](
-              FiniteDuration(interval.signed, TimeUnit.MILLISECONDS)
+            _ <- Stream[F, FiniteDuration](FiniteDuration.apply(0, TimeUnit.MILLISECONDS)) ++ Stream.awakeDelay[F](
+              FiniteDuration(interval, TimeUnit.MILLISECONDS)
             )
             sock <- Stream.eval(cli.deferredSocket.get)
             seq <- Stream.eval(sock.sequence.get)
@@ -67,7 +56,7 @@ object Defaults {
       case EventStruct(0, Some("READY"), d) =>
         d.as[ReadyData].map(Ready(client, _))
       case EventStruct(0, Some("MESSAGE_CREATE"), d) =>
-        d.as[Message].map(MessageCreate(client, _))
+        d.as[Json].map(MessageCreate(client, _))
       case EventStruct(10, None, d) =>
         d.as[HelloData].map(Hello(client, _))
       case EventStruct(11, None, _) =>
