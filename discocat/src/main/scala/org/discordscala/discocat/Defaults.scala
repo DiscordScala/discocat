@@ -5,12 +5,15 @@ import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Sync, Timer}
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.{Queue, Topic}
-import io.circe.{DecodingFailure, Json}
+import io.circe.DecodingFailure
 import java.util.concurrent.TimeUnit
+
+import org.discordscala.discocat.model.MessageLike
 import org.discordscala.discocat.ws.event._
 import org.discordscala.discocat.ws.{Event, EventDecoder, EventStruct, Socket}
 import org.http4s.client.jdkhttpclient._
 import org.http4s.client.{Client => HttpClient}
+
 import scala.concurrent.duration.FiniteDuration
 import spire.math.ULong
 
@@ -56,7 +59,7 @@ object Defaults {
       case EventStruct(0, Some("READY"), d) =>
         d.as[ReadyData].map(Ready(client, _))
       case EventStruct(0, Some("MESSAGE_CREATE"), d) =>
-        d.as[Json].map(MessageCreate(client, _))
+        d.as[MessageLike].map(MessageCreate(client, _))
       case EventStruct(10, None, d) =>
         d.as[HelloData].map(Hello(client, _))
       case EventStruct(11, None, _) =>

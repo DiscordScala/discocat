@@ -3,7 +3,7 @@ package org.discordscala.discocat
 package ws.event
 
 import io.circe.{Decoder, Encoder, Json}
-import io.circe.generic.semiauto._
+import io.circe.generic.extras.semiauto._
 import org.discordscala.discocat.ws.Event
 
 case class Ready[F[_]](client: Client[F], d: ReadyData) extends Event[F] {
@@ -24,7 +24,7 @@ case class ReadyData(
 
 object ReadyData {
 
-  implicit val readyDataEncoder: Encoder[ReadyData] = deriveEncoder
-  implicit val readyDataDecoder: Decoder[ReadyData] = deriveDecoder
+  implicit val readyDataEncoder: Encoder[ReadyData] = deriveConfiguredEncoder
+  implicit val readyDataDecoder: Decoder[ReadyData] = deriveConfiguredDecoder
 
 }

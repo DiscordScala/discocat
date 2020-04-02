@@ -3,8 +3,8 @@ package org.discordscala.discocat
 package ws.event
 
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
 import io.circe.generic.extras.JsonKey
+import io.circe.generic.extras.semiauto._
 import org.discordscala.discocat.ws.Event
 
 case class Identify[F[_]](client: Client[F], d: IdentifyData) extends Event[F] {
@@ -21,8 +21,8 @@ case class IdentifyData(token: String, properties: IdentifyProperties = Identify
 
 object IdentifyData {
 
-  implicit val identifyDataEncoder: Encoder[IdentifyData] = deriveEncoder
-  implicit val identifyDataDecoder: Decoder[IdentifyData] = deriveDecoder
+  implicit val identifyDataEncoder: Encoder[IdentifyData] = deriveConfiguredEncoder
+  implicit val identifyDataDecoder: Decoder[IdentifyData] = deriveConfiguredDecoder
 
 }
 
@@ -34,7 +34,7 @@ case class IdentifyProperties(
 
 object IdentifyProperties {
 
-  implicit val identifyPropertiesEncoder: Encoder[IdentifyProperties] = deriveEncoder
-  implicit val identifyPropertiesDecoder: Decoder[IdentifyProperties] = deriveDecoder
+  implicit val identifyPropertiesEncoder: Encoder[IdentifyProperties] = deriveConfiguredEncoder
+  implicit val identifyPropertiesDecoder: Decoder[IdentifyProperties] = deriveConfiguredDecoder
 
 }

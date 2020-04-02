@@ -2,9 +2,8 @@ package org.discordscala.discocat
 
 package ws.event
 
-import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.extras.semiauto._
 import org.discordscala.discocat.ws.Event
 
 case class Hello[F[_]](client: Client[F], d: HelloData) extends Event[F] {
@@ -21,9 +20,7 @@ case class HelloData(heartbeatInterval: Int)
 
 object HelloData {
 
-  implicitly[Configuration]
-
-  implicit val helloDataEncoder: Encoder[HelloData] = deriveEncoder
-  implicit val helloDataDecoder: Decoder[HelloData] = deriveDecoder
+  implicit val helloDataEncoder: Encoder[HelloData] = deriveConfiguredEncoder
+  implicit val helloDataDecoder: Decoder[HelloData] = deriveConfiguredDecoder
 
 }

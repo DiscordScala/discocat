@@ -22,7 +22,7 @@ object Test extends IOApp {
             case MessageCreate(_, m) =>
               Stream
                 .eval(
-                  Sync[F].delay(println(show"Message $m"))
+                  Sync[F].delay(println(s"Message $m"))
                 )
             case Ready(_, ReadyData(_, user, _, _)) =>
               Stream.eval(

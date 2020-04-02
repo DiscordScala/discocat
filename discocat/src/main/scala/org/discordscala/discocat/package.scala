@@ -24,13 +24,8 @@ package object discocat {
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
 
   implicit val ulongDecoder: Decoder[ULong] = (c: HCursor) => {
-    val numO = c.value.asNumber
     val strO = c.value.asString
-    val numAsBI = numO.flatMap(_.toBigInt)
-    val strAsBI = strO.flatMap(s => Try(BigInt(s)).toOption)
-    val biO = numAsBI.map(Some(_)).getOrElse(strAsBI)
-    biO
-      .map(ULong.fromBigInt)
+    strO.flatMap(s => Try(ULong(s)).toOption)
       .toRight(DecodingFailure(s"Attempt to decode non-integer as ULong: ${c.value}", List()))
   }
 
